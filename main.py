@@ -146,6 +146,8 @@ class Puzzle:
                 value = int(self.array[row, col])
                 if value == 0:
                     value = "·"
+                elif value == -1:
+                    value = "!"
                 output_str += f"{value} "
                 if (col + 1) % 3 == 0:
                     output_str += "│ " if col != 8 else "║"
@@ -200,7 +202,10 @@ class Puzzle:
         """
         runs through various solver methods
         """
-        self.find_forced_digits()
+        try:
+            self.find_forced_digits()
+        except RuntimeError:
+            pass
         return
 
     def find_forced_digits(self):
@@ -359,6 +364,9 @@ class Puzzle:
                     if len(valid_digits) == 1:
                         self.array[row, col] = valid_digits[0]
                         digit_found = True
+                    elif len(valid_digits) == 0:
+                        self.array[row, col] = -1
+                        raise RuntimeError("found cell with no valid digits!")
 
         return digit_found
 
@@ -378,7 +386,7 @@ if __name__ == "__main__":
             output_str += f"{line}     {other_line}\n"
         return output_str
 
-    test_puzzle = Puzzle("sudoku2.txt")
+    test_puzzle = Puzzle("sudoku4.txt")
 
     before = str(test_puzzle)
     test_puzzle.solve()
