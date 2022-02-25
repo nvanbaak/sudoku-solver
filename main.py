@@ -148,7 +148,7 @@ class Puzzle:
                     value = "·"
                 output_str += f"{value} "
                 if (col + 1) % 3 == 0:
-                    output_str += "│ " if col != 8 else "║ "
+                    output_str += "│ " if col != 8 else "║"
             output_str += "\n"
             if (row+1) % 3 == 0:
                 border = "╚═══════╩═══════╩═══════╝\n" if row == 8 else "╠───────┼───────┼───────╣\n"
@@ -196,14 +196,29 @@ class Puzzle:
         box_index = self.get_box(row, col)
         return not self.__boxes[box_index].has(value)
 
+    def find_forced_digits(self):
+        """
+        Loops through rows, columns and boxes placing digits that can only go in one location.
+        """
+        while True:
+            if self.find_forced_digits_in_rows():
+                pass
+            elif self.find_forced_digits_in_columns():
+                pass
+            elif self.find_forced_digits_in_boxes():
+                pass
+            else:
+                break
+
+
     def find_forced_digits_in_rows(self):
         """
         For all rows, find places where digits can only go in one position
+        :params:
+        returns: True if a digit was placed; False otherwise.
         """
         digit_found = False
         for row in range(0, 9):
-        # row = 2
-        # if True:
             for digit in range (1, 10):
                 # skip if the digit's already present
                 if not self.__rows[row].has(digit):
@@ -211,7 +226,7 @@ class Puzzle:
                     open_columns = []
 
                     # this loop iterates over the boxes the row is in
-                    box_row = floor(row/3)
+                    box_row = 3 * floor(row/3)
                     for box in [0, 1, 2]:
                         box_index = box + box_row
 
@@ -233,19 +248,101 @@ class Puzzle:
                         self.array[row, candidate_cells[0]] = digit
                         digit_found = True
 
-        # recurse until no more digits are found
-        # if digit_found:
-        #     self.find_forced_digits_in_rows()
+        return digit_found
 
+    def find_forced_digits_in_columns(self):
+        """
+        For all columns, find places where digits can only go in one position
+        :params:
+        returns: True if a digit was placed; False otherwise.
+        """
+        digit_found = False
+        for col in range(0, 9):
+            for digit in range (1, 10):
+                # skip if the digit's already present
+                if not self.__cols[col].has(digit):
+                    # begin locating open cells
+                    open_rows = []
 
+                    # this loop iterates over the boxes the row is in
+                    box_col = floor(col/3)
+                    for box in [0, 3, 6]:
+                        box_index = box + box_col
 
+                        # if the digit isn't in the box, add all empty cells
+                        if not self.__boxes[box_index].has(digit):
+                            for num in range(0, 3):
+                                row_index = num + box
+                                if self.array[row_index, col] == 0:
+                                    open_rows.append(row_index)
 
+                    # weed out cells with column conflicts
+                    candidate_cells = []
+                    for row in open_rows:
+                        if not self.__rows[row].has(digit):
+                            candidate_cells.append(row)
+
+                    # if only one cell remains, place the digit
+                    if len(candidate_cells) == 1:
+                        self.array[candidate_cells[0], col] = digit
+                        digit_found = True
+
+        return digit_found
+
+    def find_forced_digits_in_boxes(self):
+        """
+        For all columns, find places where digits can only go in one position
+        :params:
+        returns: True if a digit was placed; False otherwise.
+        """
+        digit_found = False
+        # for each box, check for missing digits
+        for box in range(0, 9):
+            for digit in range (1, 10):
+                if not self.__boxes[box].has(digit):
+
+                    # check which of the rows and columns are restricted
+                    open_rows = []
+                    open_cols = []
+                    for index in range (0, 3):
+                        row_index = 3*floor(box/3) + index
+                        if not self.__rows[row_index].has(digit):
+                            open_rows.append(row_index)
+                        col_index = 3 * (box % 3) + index
+                        if not self.__cols[col_index].has(digit):
+                            open_cols.append(col_index)
+
+                    candidate_cells = []
+                    for row in open_rows:
+                        for col in open_cols:
+                            candidate_cells.append((row, col))
+
+                    if len(candidate_cells) == 1:
+                        location = candidate_cells[0]
+                        self.array[location[0], location[1]] = digit
+                        digit_found = True
+
+        return digit_found
 
 
 
 
 if __name__ == "__main__":
+
+    def zipper_print(str1, str2):
+        str1 = str1.split("\n")
+        str2 = str2.split("\n")
+
+        output_str = ""
+        for line in str1:
+            other_line = str2.pop(0)
+            output_str += f"{line}     {other_line}\n"
+        return output_str
+
     test_puzzle = Puzzle("sudoku1.txt")
-    print(test_puzzle)
-    test_puzzle.find_forced_digits_in_rows()
-    print(test_puzzle)
+
+    before = str(test_puzzle)
+    test_puzzle.find_forced_digits()
+    after = str(test_puzzle)
+
+    print(zipper_print(before, after))
