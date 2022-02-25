@@ -198,14 +198,33 @@ class Puzzle:
         box_index = self.get_box(row, col)
         return not self.__boxes[box_index].has(value)
 
+    def solution_is_valid(self):
+        """
+        validation method called to ensure puzzle is valid once solved
+        :params:
+        returns: True if solution is correct, False otherwise
+        """
+        for index in range(0, 9):
+            for digit in range(1, 10):
+                if not self.__rows[index].has(digit):
+                    return False
+                if not self.__cols[index].has(digit):
+                    return False
+                if not self.__boxes[index].has(digit):
+                    return False
+        return True
+
+
     def solve(self):
         """
         runs through various solver methods
         """
         try:
             self.find_forced_digits()
+            if not self.solution_is_valid():
+                raise RuntimeError("Invalid solution!")
         except RuntimeError:
-            pass
+            print("ERROR: solve terminated with invalid solution")
         return
 
     def find_forced_digits(self):
