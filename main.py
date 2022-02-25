@@ -196,12 +196,21 @@ class Puzzle:
         box_index = self.get_box(row, col)
         return not self.__boxes[box_index].has(value)
 
+    def solve(self):
+        """
+        runs through various solver methods
+        """
+        self.find_forced_digits()
+        return
+
     def find_forced_digits(self):
         """
         Loops through rows, columns and boxes placing digits that can only go in one location.
         """
         while True:
-            if self.find_forced_digits_in_rows():
+            if self.find_naked_singles():
+                pass
+            elif self.find_forced_digits_in_rows():
                 pass
             elif self.find_forced_digits_in_columns():
                 pass
@@ -209,7 +218,6 @@ class Puzzle:
                 pass
             else:
                 break
-
 
     def find_forced_digits_in_rows(self):
         """
@@ -324,12 +332,43 @@ class Puzzle:
 
         return digit_found
 
+    def find_naked_singles(self):
+        """
+        Finds cells that can only have one value
+        :params:
+        returns: True if digit place, False otherwise
+        """
+        digit_found = False
+        # oop over all empty cells in the puzzle
+        for row in range(0, 9):
+            for col in range (0, 9):
+                if self.array[row, col] == 0:
 
+                    # try each digit and store if viable
+                    valid_digits = []
+                    for digit in range(1,10):
+
+                        if self.digit_allowed_at(digit, row, col):
+                            valid_digits.append(digit)
+
+                            # since we're only looking for naked singles,
+                            # stop looping if we find a second viable digit
+                            if len(valid_digits) > 1:
+                                break
+
+                    if len(valid_digits) == 1:
+                        self.array[row, col] = valid_digits[0]
+                        digit_found = True
+
+        return digit_found
 
 
 if __name__ == "__main__":
 
     def zipper_print(str1, str2):
+        """
+        prints two strings of equal size next to each other to save terminal space
+        """
         str1 = str1.split("\n")
         str2 = str2.split("\n")
 
@@ -339,10 +378,10 @@ if __name__ == "__main__":
             output_str += f"{line}     {other_line}\n"
         return output_str
 
-    test_puzzle = Puzzle("sudoku1.txt")
+    test_puzzle = Puzzle("sudoku2.txt")
 
     before = str(test_puzzle)
-    test_puzzle.find_forced_digits()
+    test_puzzle.solve()
     after = str(test_puzzle)
 
     print(zipper_print(before, after))
