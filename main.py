@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import numpy as np
 from math import floor
+import sys
 
 class Puzzle:
     """
@@ -139,7 +140,7 @@ class Puzzle:
         """
         Returns puzzle as a string
         """
-        output_str = "╔═══════╦═══════╦═══════╗\n"
+        output_str = "╔═══════╤═══════╤═══════╗\n"
         for row in range(0, 9):
             output_str += "║ "
             for col in range(0,9):
@@ -153,7 +154,7 @@ class Puzzle:
                     output_str += "│ " if col != 8 else "║"
             output_str += "\n"
             if (row+1) % 3 == 0:
-                border = "╚═══════╩═══════╩═══════╝\n" if row == 8 else "╠───────┼───────┼───────╣\n"
+                border = "╚═══════╧═══════╧═══════╝\n" if row == 8 else "╟───────┼───────┼───────╢\n"
                 output_str += border
         return output_str
 
@@ -392,23 +393,24 @@ class Puzzle:
 
 if __name__ == "__main__":
 
-    def zipper_print(str1, str2):
-        """
-        prints two strings of equal size next to each other to save terminal space
-        """
-        str1 = str1.split("\n")
-        str2 = str2.split("\n")
+    for arg in sys.argv[1:]:
+        def zipper_print(str1, str2):
+            """
+            prints two strings of equal size next to each other to save terminal space
+            """
+            str1 = str1.split("\n")
+            str2 = str2.split("\n")
 
-        output_str = ""
-        for line in str1:
-            other_line = str2.pop(0)
-            output_str += f"{line}     {other_line}\n"
-        return output_str
+            output_str = ""
+            for line in str1:
+                other_line = str2.pop(0)
+                output_str += f"{line}     {other_line}\n"
+            return output_str
 
-    test_puzzle = Puzzle("sudoku4.txt")
+        test_puzzle = Puzzle(arg)
 
-    before = str(test_puzzle)
-    test_puzzle.solve()
-    after = str(test_puzzle)
+        before = str(test_puzzle)
+        test_puzzle.solve()
+        after = str(test_puzzle)
 
-    print(zipper_print(before, after))
+        print(zipper_print(before, after))
