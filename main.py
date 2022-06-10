@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 import numpy as np
 from math import floor
 import sys
+import threading
+import time
 
 class Puzzle:
     """
@@ -244,6 +246,58 @@ class Puzzle:
             else:
                 break
 
+    def solve_multithreaded(self):
+        """
+        Runs each solve method in a separate thread
+        """
+
+        method_dict = {
+            "naked_singles" : True,
+            "forced_rows" : True,
+            "forced_columns" : True,
+            "forced_boxes" : True
+        }
+
+        threads = []
+
+        for technique in ["naked_singles", "forced_rows", "forced_columns", "forced_boxes"]:
+            threads.append(threading.Thread(None, 
+                target=self.run_methods_in_thread, 
+                args=(technique, method_dict)))
+
+        for thread in threads:
+            thread.start()
+
+        for thread in threads:
+            thread.join()
+
+        # while threading.active_count() > 0:
+        #     pass
+
+
+    def run_methods_in_thread(self, technique, dict):
+        """
+        Solve method intended to be threaded; loops the given solution method
+        until no more progress is made
+        """
+        solution_dict = {
+            "naked_singles" : self.find_naked_singles,
+            "forced_rows" : self.find_forced_digits_in_rows,
+            "forced_columns" : self.find_forced_digits_in_columns,
+            "forced_boxes" : self.find_forced_digits_in_boxes
+        }
+
+        # loop as long as someone somewhere is making progress on the puzzle
+        while True in dict.values():
+            digit_placed = solution_dict[technique]()
+            dict[technique] = digit_placed
+            # once everything returns negative it runs one more time,
+            # just in case another thread was slow bringing the good news 
+            # if not True in dict.values():
+            #     digit_placed = solution_dict[technique]()
+            #     dict[technique] = digit_placed
+
+
     def find_forced_digits_in_rows(self):
         """
         For all rows, find places where digits can only go in one position
@@ -408,9 +462,26 @@ if __name__ == "__main__":
             return output_str
 
         test_puzzle = Puzzle(arg)
+        test_puzzle_2 = Puzzle(arg)
+
+        # test without threading
+        start_time = time.time()
 
         before = str(test_puzzle)
         test_puzzle.solve()
         after = str(test_puzzle)
 
-        print(zipper_print(before, after))
+        single_time = f"Solve time without threading: {time.time()  - start_time} seconds"
+
+        start_time = time.time()
+
+        before_threaded = str(test_puzzle_2)
+        test_puzzle_2.solve_multithreaded()
+        after_threaded = str(test_puzzle_2)
+
+        threaded_time = f"Solve time with threading: {time.time()  - start_time} seconds"
+
+        print(zipper_print(before_threaded, after_threaded))
+        print(single_time)
+        print(threaded_time)
+
